@@ -1,26 +1,23 @@
-# Project Mercato: Multi-Agent Game-Theoretic Simulation
+# Project Mercato: Soccer Transfer Market Simulator
 
-## 01. Logic Architecture
-Project Mercato is a high-fidelity simulation of professional transfer markets, focusing on **Marginal Utility** and **Resource Scarcity**. Unlike standard simulators, this engine treats players as assets whose value is derived from their **Win-Probability-Added (WPA)** relative to an agent's existing roster quality.
+## What is this?
+Project Mercato is a Python-based simulation that looks at how soccer teams spend their money to build the best possible squad. Instead of just picking players randomly, I built "Agent Personalities" that use math to decide if a player is worth the price.
 
-## 02. Key Engineering Milestones
+I wanted to see if a "Moneyball" team (buying value) could actually beat a "Global Giant" (buying superstars) over multiple seasons.
 
-### A. Dynamic Position Hunger (Diminishing Marginal Utility)
-Implemented a non-linear decay function for asset valuation. As an agent approaches its roster target for a specific position (e.g., "ST" or "GK"), the internal valuation of additional assets in that class drops exponentially. 
-* **Impact:** Prevents capital-rich agents from monopolizing the market and forces strategic "exit" behaviors.
+## How it Works (The Logic)
+1. **The Auction Engine:** Every player is sold in a "Second-Price Auction." The winner pays a small premium over the second-highest bidder, mimicking how real negotiations work.
+2. **Marginal Utility:** Teams don't just look at a player's skill. They look at how much that player improves their current average skill. If a team already has a great Goalkeeper, they won't bid high on another one.
+3. **Strategic Personalities:** 
+    - **WIN_NOW:** These teams will overpay for top-tier talent to get immediate results.
+    - **REBUILD:** These teams focus on younger players with better long-term value.
+4. **The Feedback Loop:** After the transfer window, teams play a "season." The higher they finish, the more prize money they get for next year’s window.
+5. **Aging & Retirement:** Players get older every season. Once they hit 35, they retire, forcing teams to constantly update their strategy.
 
-### B. Subjective Value & Strategy-Based Scaling
-Agents are assigned distinct financial personalities:
-* **WIN_NOW:** Prioritizes immediate skill gain with a 1.5x utility multiplier.
-* **REBUILD:** Applies a Time-Value-of-Asset discount, penalizing older players regardless of high skill ratings.
+## Tech Used
+- **Python**: Core logic and simulation.
+- **CSV**: Data storage for all transfer history.
+- **Math/Statistics**: Used Gaussian distributions for player generation and non-linear decay for aging.
 
-### C. Second-Price Auction with Reserve Logic
-Simulates realistic market-clearing prices. The winner pays a 5% premium over the runner-up's maximum "walk-away" point, ensuring that prices are determined by **market competition** rather than arbitrary fixed tags.
-
-## 03. Technical Stack & Modeling
-* **Algorithm:** Multi-Agent Sealed-Bid Auction.
-* **Stochastic Modeling:** Gaussian Distribution (Normal) for talent scarcity (Skill $\mu=75, \sigma=8$).
-* **Data Persistence:** Automated CSV logging of transaction history, strategy utilization, and capital flow.
-
-## 04. System Analysis (The "Quant" View)
-This project serves as a testbed for answering: *“Is it mathematically optimal to acquire one superstar or three average assets?”* By modeling **Opportunity Cost**, the simulator demonstrates that the 'highest skill' choice is rarely the 'highest ROI' choice under budget constraints.
+## What I Learned
+Building this showed me that a "perfect" player isn't always a good investment. If a superstar costs 90% of your budget, you might fail to field a full team, causing your "Team Strength" to drop. The best teams are usually the most balanced ones.
