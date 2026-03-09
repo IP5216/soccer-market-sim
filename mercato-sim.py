@@ -1,11 +1,12 @@
 import random
+import csv
 
 class Player:
     def __init__(self, name, skill, age, position):
         self.name = name
         self.skill = skill 
         self.age = age
-        self.position = position # "ST", "MID", "DEF"
+        self.position = position # "ST", "MID", "DEF, GK"
         # Base Market Value calculation
         self.base_value = (self.skill * (35 - self.age)) * 50000
 
@@ -36,47 +37,87 @@ class Team:
         self.budget = budget
         self.strategy = strategy 
         self.roster = []
+        # New: Tracking current skill levels
+        self.squad_quality = {"ST": 60.0, "MID": 60.0, "DEF": 60.0, "GK": 60.0}
+        
+        # New: Position Hunger (Target number of players per position)
+        self.targets = {"ST": 2, "MID": 4, "DEF": 4, "GK": 1}
+
+    def get_hunger_multiplier(self, position):
+        """
+        Calculates how 'desperate' a team is for a position.
+        If they have met their target, valuation drops significantly.
+        """
+        current_count = len([p for p in self.roster if p.position == position])
+        target_count = self.targets.get(position, 1)
+
+        if current_count == 0:
+            return 1.3  # 30% Desperation Premium
+        if current_count < target_count:
+            return 1.0  # Standard Value
+        
+        # Diminishing Utility: Every player above target reduces valuation by 40%
+        return 0.6 ** (current_count - target_count + 1)
+
+    def update_squad_quality(self):
+        """Recalculates the baseline skill for each position group."""
+        for pos in self.squad_quality:
+            pos_players = [p.skill for p in self.roster if p.position == pos]
+            if pos_players:
+                self.squad_quality[pos] = sum(pos_players) / len(pos_players)
 
     def calculate_internal_valuation(self, player, scarcity_mid):
-        # 1. Base Strategy Logic
-        if self.strategy == "WIN_NOW":
-            val = player.base_value * (player.skill / 60)
-        else:
-            val = player.base_value * ((40 - player.age) / 10)
+        # 1. Marginal Utility (WPA)
+        current_avg = self.squad_quality.get(player.position, 60)
+        marginal_gain = max(0, player.skill - current_avg)
         
-        # 2. Apply Scarcity (The Economic Hook)
-        final_valuation = val * scarcity_mid
-        return min(final_valuation, self.budget)
+        # 2. Strategy & Age Scaling
+        if self.strategy == "WIN_NOW":
+            utility_score = marginal_gain * 1.5 
+        else:
+            age_factor = max(0.1, (35 - player.age) / 15)
+            utility_score = marginal_gain * age_factor
 
-def run_auction(player, teams, market):
-    print(f"\n--- Auction: {player.name} ({player.position}) | Skill: {player.skill} ---")
+        # 3. New: Apply Position Hunger
+        hunger_mid = self.get_hunger_multiplier(player.position)
+        
+        # 4. Final Valuation
+        valuation = utility_score * 5_000_000 * scarcity_mid * hunger_mid
+        return min(valuation, self.budget)
     
+def run_auction(player, teams, market):
     scarcity_mid = market.get_scarcity_multiplier(player.position)
-    if scarcity_mid > 1.0:
-        print(f"!!! SCARCITY ALERT: {player.position} supply is low. Prices inflated by {int((scarcity_mid-1)*100)}% !!!")
-
     bids = []
+    
     for team in teams:
+        # Each team bids based on their current roster and hunger
         max_val = team.calculate_internal_valuation(player, scarcity_mid)
         bids.append((max_val, team))
 
     bids.sort(key=lambda x: x[0], reverse=True)
-    
     winner_val, winner_team = bids[0]
-    runner_up_val = bids[1][0] if len(bids) > 1 else player.base_value * 0.8
     
-    final_price = runner_up_val * 1.05 
+    # Second-price auction logic (5% above runner-up)
+    reserve_price = player.base_value * 0.7  # The 'Floor' price
+    runner_up_val = bids[1][0] if len(bids) > 1 else reserve_price
+    final_price = max(reserve_price, runner_up_val * 1.05)
 
     if final_price <= winner_val and final_price <= winner_team.budget:
         winner_team.budget -= final_price
         winner_team.roster.append(player)
-        print(f"SOLD: {winner_team.name} paid ${final_price:,.2f}")
-    else:
-        print("RESULT: No deal reached (Price exceeded budget/valuation)")
-
-import random
-
-# --- (Keep your Player, Team, and Market classes from the previous step) ---
+        
+        # CRITICAL: Update team state so they aren't 'hungry' for this position anymore
+        winner_team.update_squad_quality() 
+        
+        return {
+            "player_name": player.name,
+            "skill": player.skill,
+            "position": player.position,
+            "buyer": winner_team.name,
+            "price": round(final_price, 2),
+            "strategy_used": winner_team.strategy
+        }
+    return None
 
 def generate_random_players(count):
     players = []
@@ -97,32 +138,31 @@ def generate_random_players(count):
 
 # --- EXECUTION ---
 if __name__ == "__main__":
-    # 1. Generate 100 Random Players
     all_players = generate_random_players(100)
     market = Market(all_players)
-
-    # 2. Create various Team Personas
     clubs = [
-        Team("Oil Money United", 800000000, "WIN_NOW"),
+        Team("Global Giants", 800000000, "WIN_NOW"),
         Team("London Blue", 600000000, "WIN_NOW"),
         Team("Ajax-Style Academy", 200000000, "REBUILD"),
-        Team("Moneyball FC", 150000000, "REBUILD"),
-        Team("Relegation Fighters", 800000000, "WIN_NOW")
+        Team("Moneyball FC", 150000000, "REBUILD")
     ]
 
-    # 3. Sort players by skill so the 'Best' are auctioned first
     all_players.sort(key=lambda x: x.skill, reverse=True)
-
-    # 4. Run the Market Window
-    print(f"MARKET OPEN: {len(all_players)} players available.")
-    print(f"Supply Levels: {market.position_counts}")
     
-    for p in all_players:
-        run_auction(p, clubs, market)
+    # Store all transaction records here
+    transfer_history = []
 
-    # 5. The "Quant" Summary
-    print("\n" + "="*40)
-    print("FINAL MARKET RECAP")
-    print("="*40)
-    for team in clubs:
-        print(f"{team.name: <20} | Budget Left: ${team.budget/1e6: >6.1f}M | Players: {len(team.roster)}")
+    for p in all_players:
+        transaction = run_auction(p, clubs, market)
+        if transaction:
+            transfer_history.append(transaction)
+
+    if len(transfer_history) > 0:
+        keys = transfer_history[0].keys()
+        with open('transfer_data.csv', 'w', newline='') as output_file:
+            dict_writer = csv.DictWriter(output_file, fieldnames=keys)
+            dict_writer.writeheader()
+            dict_writer.writerows(transfer_history)
+        print(f"\nSimulation Complete. {len(transfer_history)} transfers saved to 'transfer_data.csv'.")
+    else:
+        print("\nSimulation Complete, but NO transfers were made. Check your budget and valuations.")
