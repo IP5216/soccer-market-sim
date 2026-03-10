@@ -84,29 +84,31 @@ class Team:
     def calculate_internal_valuation(self, player, scarcity_mid):
         if len(self.roster) >= self.roster_cap: return 0
 
-        # Max bid is 50% of budget, but we ensure a team always keeps some cash
-        max_bid = self.budget * 0.5
-
-        # UPGRADE LOGIC: Compare player to the current squad
+        # 1. Find our best player in this position
         pos_players = [p.skill for p in self.roster if p.position == player.position]
-        if pos_players:
-            # If the new player is better than our average, they are worth more
-            current_avg = sum(pos_players) / len(pos_players)
-            marginal_gain = max(1.0, player.skill - (current_avg - 5)) 
-        else:
-            marginal_gain = max(1.0, player.skill - 50) # Desperation for first signing
+        current_best = max(pos_players) if pos_players else 50 # Default 50 if empty
 
+        # 2. Calculate Improvement Gap
+        # If the new player is worse than our best, we only buy for bench depth (low value)
+        improvement = max(0.5, player.skill - current_best)
+        
+        # 3. SATISFACTION FACTOR (The "Haaland Rule")
+        # As current_best approaches 100, this multiplier shrinks towards 0.1
+        satisfaction_factor = max(0.1, (100 - current_best) / 50)
+
+        # 4. Strategy Adjustments
         if self.strategy == "WIN_NOW":
-            utility_score = marginal_gain * 1.5 
+            utility_score = improvement * 1.5 
         else:
             age_factor = max(0.5, (35 - player.age) / 10)
-            utility_score = marginal_gain * age_factor
+            utility_score = improvement * age_factor
 
         hunger_mid = self.get_hunger_multiplier(player.position)
         
-        # INCREASED MULTIPLIER: Changed from 2M to 5M to keep prices in the Millions
-        valuation = utility_score * 5_000_000 * scarcity_mid * hunger_mid
-        return min(valuation, max_bid)
+        # We increase the multiplier to 8M because 'improvement' is a smaller number than 'skill'
+        valuation = utility_score * 8_000_000 * scarcity_mid * hunger_mid * satisfaction_factor
+        
+        return min(valuation, self.budget * 0.5)
     
 class League:
     def __init__(self, teams):
@@ -154,7 +156,10 @@ def run_auction(player, teams, market, season_num):
     bids.sort(key=lambda x: x[0], reverse=True)
     winner_val, winner_team = bids[0]
     
-    reserve_price = (player.skill ** 2) * 2000
+    reserve_price = (player.skill ** 2.5) / 15 # Exponential floor
+
+    if not bids or bids[0][0] < reserve_price:
+        return None
     runner_up_val = bids[1][0] if len(bids) > 1 else reserve_price
     final_price = min(winner_val, max(reserve_price, runner_up_val))
 
