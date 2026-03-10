@@ -84,22 +84,28 @@ class Team:
     def calculate_internal_valuation(self, player, scarcity_mid):
         if len(self.roster) >= self.roster_cap: return 0
 
-        # Pacing: Limit spend per player based on roster size
-        max_spend_ratio = 0.20 if len(self.roster) < 11 else 0.5
-        max_bid = self.budget * max_spend_ratio
+        # Max bid is 50% of budget, but we ensure a team always keeps some cash
+        max_bid = self.budget * 0.5
 
-        pos_count = len([p for p in self.roster if p.position == player.position])
-        baseline = self.squad_quality.get(player.position, 60) if pos_count > 0 else 40.0
-        marginal_gain = max(1.0, player.skill - baseline)
-        
+        # UPGRADE LOGIC: Compare player to the current squad
+        pos_players = [p.skill for p in self.roster if p.position == player.position]
+        if pos_players:
+            # If the new player is better than our average, they are worth more
+            current_avg = sum(pos_players) / len(pos_players)
+            marginal_gain = max(1.0, player.skill - (current_avg - 5)) 
+        else:
+            marginal_gain = max(1.0, player.skill - 50) # Desperation for first signing
+
         if self.strategy == "WIN_NOW":
             utility_score = marginal_gain * 1.5 
         else:
-            age_factor = max(0.1, (35 - player.age) / 15)
+            age_factor = max(0.5, (35 - player.age) / 10)
             utility_score = marginal_gain * age_factor
 
         hunger_mid = self.get_hunger_multiplier(player.position)
-        valuation = utility_score * 2_000_000 * scarcity_mid * hunger_mid
+        
+        # INCREASED MULTIPLIER: Changed from 2M to 5M to keep prices in the Millions
+        valuation = utility_score * 5_000_000 * scarcity_mid * hunger_mid
         return min(valuation, max_bid)
     
 class League:
@@ -148,7 +154,7 @@ def run_auction(player, teams, market, season_num):
     bids.sort(key=lambda x: x[0], reverse=True)
     winner_val, winner_team = bids[0]
     
-    reserve_price = player.base_value * 0.5
+    reserve_price = (player.skill ** 2) * 2000
     runner_up_val = bids[1][0] if len(bids) > 1 else reserve_price
     final_price = min(winner_val, max(reserve_price, runner_up_val))
 
