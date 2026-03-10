@@ -1,132 +1,30 @@
 season,player_name,skill,position,buyer,price
-1,Zhang 350,92,GK,Global Giants,150000000.0
-1,Silva 813,92,DEF,London Blue,125000000.0
-1,Mbappe 266,91,DEF,Global Giants,75000000.0
-1,Rossi 615,89,GK,London Blue,75000000.0
-1,Hernandez 196,89,GK,Ajax-Style Academy,50000000.0
-1,Kane 178,88,MID,Global Giants,50000000.0
-1,Mbappe 769,88,MID,London Blue,50000000.0
-1,Mbappe 894,88,MID,Ajax-Style Academy,50000000.0
-1,Zhang 886,87,ST,Global Giants,50000000.0
-1,Mbappe 506,86,MID,Moneyball FC,2448000.0
-1,Rossi 302,84,MID,Global Giants,2160000.0
-1,Mbappe 531,84,MID,Global Giants,2160000.0
-1,Kane 224,84,DEF,Moneyball FC,25000000.0
-1,Mbappe 417,84,ST,Moneyball FC,25000000.0
-1,Müller 846,83,DEF,Ajax-Style Academy,2880000.0
-1,Hernandez 457,83,MID,London Blue,1848000.0
-1,Hernandez 988,83,MID,Moneyball FC,2304000.0
-1,Rossi 599,82,GK,Moneyball FC,396000.0
-1,Rossi 886,82,GK,Moneyball FC,448800.0
-1,Jones 645,82,MID,Moneyball FC,2160000.0
-1,Jones 481,82,ST,London Blue,23560000.0
-1,Zhang 158,81,GK,London Blue,288000.0
-1,Hernandez 100,81,ST,Ajax-Style Academy,3240000.0
-1,Müller 473,81,GK,Global Giants,184800.0
-1,Kane 226,81,MID,London Blue,1584000.0
-1,Rossi 169,80,ST,Ajax-Style Academy,3240000.0
-1,Rossi 508,79,ST,London Blue,2340000.0
-1,Müller 789,79,ST,London Blue,2340000.0
-1,Mbappe 346,79,GK,Ajax-Style Academy,118800.0
-1,Jones 931,79,MID,Ajax-Style Academy,537600.0
-1,Rossi 431,79,MID,Ajax-Style Academy,504000.0
-1,Kane 238,79,DEF,Ajax-Style Academy,2880000.0
-1,Rossi 442,79,MID,Moneyball FC,460800.0
-1,Mbappe 598,78,ST,Global Giants,1596000.0
-1,Müller 555,78,DEF,Ajax-Style Academy,1728000.0
-1,Rossi 852,77,GK,London Blue,86400.0
-1,Müller 264,77,MID,Global Giants,432000.0
-1,Kane 382,77,ST,Ajax-Style Academy,3072000.0
-1,Zhang 960,77,DEF,Global Giants,1440000.0
-1,Hernandez 230,77,DEF,Global Giants,1440000.0
-1,Müller 828,76,ST,Moneyball FC,2340000.0
-1,Jones 251,76,ST,Global Giants,960000.0
-1,Silva 954,76,ST,Moneyball FC,648000.0
-1,Mbappe 774,76,MID,London Blue,345600.0
-1,Jones 735,76,DEF,Ajax-Style Academy,1728000.0
-1,Zhang 121,76,GK,Global Giants,64800.0
-1,Müller 375,76,ST,London Blue,468000.0
-1,Müller 994,75,DEF,Moneyball FC,1620000.0
-1,Zhang 829,75,MID,Ajax-Style Academy,129600.0
-1,Rossi 471,75,MID,Global Giants,129600.0
-1,Silva 533,75,GK,Moneyball FC,95040.0
-1,Kane 880,75,GK,Ajax-Style Academy,62208.0
-1,Jones 436,75,ST,Global Giants,456000.0
-1,Müller 909,75,GK,London Blue,25920.0
-1,Hernandez 968,75,MID,London Blue,50400.0
-1,Zhang 536,74,GK,Moneyball FC,28512.0
-1,Zhang 929,74,MID,Moneyball FC,77760.0
-1,Hernandez 999,74,GK,Global Giants,21384.0
-1,Mbappe 456,74,MID,Ajax-Style Academy,39312.0
-1,Müller 211,74,DEF,Moneyball FC,1620000.0
-1,Mbappe 242,74,ST,Ajax-Style Academy,422400.0
-1,Zhang 328,73,ST,Moneyball FC,232560.0
-1,Müller 786,72,ST,London Blue,191520.0
-1,Silva 956,72,MID,Moneyball FC,38880.0
-1,Kane 787,72,ST,Global Giants,68400.0
-1,Zhang 463,72,GK,Ajax-Style Academy,10692.0
-1,Jones 210,72,ST,Ajax-Style Academy,138240.0
-1,Rossi 973,72,ST,Moneyball FC,58320.0
-1,Jones 591,71,GK,Moneyball FC,10692.0
-1,Silva 172,71,ST,Ajax-Style Academy,58752.0
-1,Mbappe 413,71,MID,Ajax-Style Academy,38880.0
-1,Rossi 865,70,GK,London Blue,10692.0
-1,Rossi 734,70,MID,Global Giants,38880.0
-1,Mbappe 412,69,DEF,Moneyball FC,1620000.0
-1,Mbappe 736,69,ST,London Blue,51840.0
-1,Silva 643,69,MID,London Blue,11664.0
-1,Müller 848,68,MID,Global Giants,11664.0
-1,Rossi 437,68,MID,London Blue,4536.0
-1,Müller 561,68,ST,Global Giants,24192.0
-1,Silva 934,68,DEF,Global Giants,1440000.0
-1,Silva 593,68,ST,London Blue,17280.0
-1,Rossi 208,67,GK,Global Giants,4989.6
-1,Rossi 718,67,GK,Ajax-Style Academy,4548.96
-1,Jones 586,67,MID,Moneyball FC,4665.6
-1,Rossi 508,66,DEF,London Blue,408000.0
-1,Müller 867,66,GK,Moneyball FC,3207.6
-1,Kane 680,66,DEF,London Blue,612000.0
-1,Kane 967,66,DEF,London Blue,326400.0
-1,Zhang 932,66,MID,Ajax-Style Academy,3499.2
-1,Zhang 705,66,DEF,Global Giants,288000.0
-1,Hernandez 503,65,GK,London Blue,2332.8
-1,Hernandez 130,65,DEF,London Blue,285600.0
-1,Zhang 726,65,GK,Global Giants,2270.87
-1,Zhang 894,63,DEF,Ajax-Style Academy,537600.0
-1,Mbappe 486,62,MID,Global Giants,3499.2
-1,Silva 239,62,ST,Moneyball FC,13543.2
-1,Jones 287,61,DEF,Moneyball FC,97200.0
-1,Müller 568,60,DEF,Ajax-Style Academy,97200.0
-1,Jones 184,60,GK,Ajax-Style Academy,1859.03
-1,Mbappe 379,60,MID,London Blue,3265.92
-2,Hernandez 740,92,MID,Moneyball FC,9331.2
-2,Mbappe 326,90,GK,Moneyball FC,5122.89
-2,Zhang 251,89,MID,Ajax-Style Academy,4981.77
-2,Jones 970,87,DEF,Moneyball FC,146880.0
-2,Silva 262,86,DEF,Ajax-Style Academy,97200.0
-2,Mbappe 640,85,DEF,Global Giants,86400.0
-2,Hernandez 764,85,ST,Ajax-Style Academy,31492.8
-2,Mbappe 502,84,ST,London Blue,12636.0
-2,Müller 531,83,DEF,London Blue,42120.0
-2,Silva 943,83,DEF,Moneyball FC,29160.0
-2,Hernandez 946,82,ST,Global Giants,4059.23
-2,Müller 294,79,ST,Global Giants,3698.08
-3,Mbappe 425,95,GK,London Blue,13996.8
-3,Silva 730,89,ST,Moneyball FC,13996.8
-3,Kane 382,89,MID,Global Giants,6998.4
-3,Müller 568,88,ST,London Blue,4843.01
-3,Kane 508,87,DEF,Global Giants,4706.6
-3,Silva 740,87,DEF,Global Giants,4706.6
-3,Jones 958,84,DEF,Global Giants,4311.29
-3,Kane 226,84,DEF,Global Giants,4311.29
-4,Rossi 158,95,MID,London Blue,29393.28
-4,Kane 279,94,ST,Moneyball FC,53071.2
-4,Müller 522,93,DEF,Global Giants,51840.0
-4,Hernandez 396,93,DEF,London Blue,5560.53
-4,Zhang 710,91,DEF,London Blue,5266.38
-5,Müller 793,88,MID,Moneyball FC,4860.0
-5,Jones 304,88,MID,London Blue,4843.01
-5,Hernandez 543,87,DEF,Global Giants,10886.4
-5,Rossi 425,84,DEF,Global Giants,9072.0
-5,Müller 829,83,DEF,Global Giants,5443.2
-5,Rossi 420,83,DEF,Ajax-Style Academy,4184.12
+1,Silva_1_81,92,DEF,Ajax Academy,43200000.0
+1,Silva_1_66,87,DEF,Moneyball FC,28800000.0
+1,Bellingham_1_90,87,GK,Global Giants,54000000.0
+1,Hernandez_1_79,85,GK,London Blue,42720000.0
+1,Bellingham_1_89,85,DEF,Global Giants,12628244.92
+1,Bellingham_1_93,85,MID,Ajax Academy,31680000.0
+1,Zhang_1_83,84,MID,London Blue,28480000.0
+1,Hernandez_1_54,83,GK,Moneyball FC,13200000.0
+1,Musiala_1_6,81,ST,London Blue,23200000.0
+1,Bellingham_1_25,81,GK,Ajax Academy,11033874.94
+1,Kane_1_52,81,ST,Moneyball FC,12960000.0
+1,Müller_1_63,81,ST,Ajax Academy,11033874.94
+1,Zhang_1_96,80,MID,Moneyball FC,10656681.05
+2,Rossi_2_69,94,GK,London Blue,18720000.0
+2,Hernandez_2_93,88,ST,London Blue,25536000.0
+2,Hernandez_2_3,87,ST,Ajax Academy,18057600.0
+2,Silva_2_87,86,DEF,London Blue,13048652.57
+2,Zhang_2_6,85,MID,Moneyball FC,12628244.92
+2,Rossi_2_62,82,GK,Ajax Academy,11419544.76
+3,Hernandez_3_1,96,GK,Ajax Academy,22464000.0
+3,Rossi_3_76,96,MID,Global Giants,34560000.0
+3,Kane_3_77,93,MID,London Blue,16245095.18
+3,Rossi_3_63,92,MID,Ajax Academy,20160000.0
+3,Silva_3_51,87,ST,Moneyball FC,13477952.2
+4,Silva_4_12,94,DEF,Global Giants,22176000.0
+4,Hernandez_4_42,85,GK,Moneyball FC,12628244.92
+5,Musiala_5_19,92,GK,Global Giants,21600000.0
+5,Silva_5_26,89,ST,Global Giants,14363557.69
+5,Musiala_5_72,89,GK,Moneyball FC,15120000.0
