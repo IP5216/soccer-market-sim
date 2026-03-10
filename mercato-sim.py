@@ -2,33 +2,30 @@ import random
 import csv
 import os
 
+# --- STRATEGIC SIMULATION CONFIGURATION ---
+CONFIG = {
+    "ROSTER_CAP": 28,
+    "MIN_SQUAD": {"GK": 1, "DEF": 4, "MID": 3, "ST": 3},
+    "RETIREMENT_AGE": 35,
+    "DECLINE_AGE": 30,
+    "GROWTH_LIMIT": 25,
+    "LUXURY_TAX_THRESHOLD": 600_000_000,
+    "TAX_RATE": 0.50,
+    "PERFORMANCE_VARIANCE": 4.0,   # Increased to allow for "Underdog" seasons
+    "TV_REVENUE_BASE": 65_000_000,  # Base floor to keep small teams viable
+    "WAGE_COEFFICIENT": 28.5,       # High penalty for elite squad maintenance
+    "SCOUTING_ERROR_RANGE": 10      # High base error for non-Moneyball teams
+}
+
 class Player:
     def __init__(self, name, skill, age, position):
         self.name = name
         self.skill = skill
         self.age = age
         self.position = position
-        # Potential allows for long-term "Moneyball" growth
-        self.potential = skill + random.randint(5, 15)
-        # Exponential market value scaling
-        self.market_value = (self.skill ** 2.8) * 50
-
-class Market:
-    def __init__(self, players):
-        self.players = players
-        self.position_counts = self._count_positions()
-
-    def _count_positions(self):
-        counts = {"ST": 0, "MID": 0, "DEF": 0, "GK": 0}
-        for p in self.players:
-            counts[p.position] += 1
-        return counts
-
-    def get_scarcity_multiplier(self, position):
-        count = self.position_counts.get(position, 1)
-        if count <= 1: return 1.5
-        if count <= 3: return 1.2
-        return 1.0
+        self.potential = skill + random.randint(5, 18)
+        # Market value uses a power law: stars are exponentially expensive
+        self.market_value = (self.skill ** 3.0) * 40
 
 class Team:
     def __init__(self, name, budget, strategy, start_skill):
@@ -36,174 +33,169 @@ class Team:
         self.budget = budget
         self.strategy = strategy
         self.roster = []
-        self.targets = {"GK": 1, "DEF": 4, "MID": 3, "ST": 3}
-        self.roster_cap = 28
-        self.last_season_rank = 1 
+        self.last_season_rank = 1
+        # Moneyball Advantage: Higher scouting accuracy and specific rebuild focus
+        self.scouting_accuracy = 0.95 if strategy == "REBUILD" else 0.70
         self._generate_initial_squad(start_skill)
 
     def _generate_initial_squad(self, avg_skill):
-        for pos, count in self.targets.items():
-            for i in range(count):
-                skill = int(random.gauss(avg_skill, 4))
-                p = Player(f"{self.name}_Starter_{pos}_{i}", skill, random.randint(22, 30), pos)
+        for pos, count in CONFIG["MIN_SQUAD"].items():
+            for i in range(count + 1):
+                p = Player(f"{self.name}_Init_{pos}_{i}", int(random.gauss(avg_skill, 5)), random.randint(21, 28), pos)
                 self.roster.append(p)
 
+    def pay_wages(self):
+        """Strategic Outflow: Punishes hoarding high-skill players."""
+        # Elite players demand exponentially higher wages
+        total_bill = sum([(p.skill ** 2.6) * CONFIG["WAGE_COEFFICIENT"] for p in self.roster])
+        self.budget -= total_bill
+        return total_bill
+
     def develop_players(self):
-        """Handles youth growth and veteran decline."""
+        """Aging & Realistic Decline logic."""
         for p in self.roster:
             p.age += 1
-            if p.age < 25 and p.skill < p.potential:
-                p.skill += random.randint(1, 3)
-            elif p.age > 30:
+            if p.age < CONFIG["GROWTH_LIMIT"]:
+                p.skill += random.randint(1, 4)
+            elif p.age > CONFIG["DECLINE_AGE"]:
                 p.skill -= random.randint(1, 3)
             p.skill = max(10, min(99, p.skill))
 
     def sell_players(self):
-        """FIX: Improved logic to protect top stars and maintain squad depth."""
-        sold_count = 0
-        recouped = 0
-        
-        # Sort LOWEST to HIGHEST skill so we cut the worst players first
+        """Moneyball Arbitrage: Selling stars at peak value."""
         self.roster.sort(key=lambda x: x.skill)
-        
-        # Cut worst players only if over the cap
-        while len(self.roster) > self.roster_cap:
-            p = self.roster.pop(0) # Remove lowest skill
-            sale_price = p.market_value * 0.5
-            self.budget += sale_price
-            recouped += sale_price
-            sold_count += 1
-            
-        kept_roster = []
+        sold, recouped = 0, 0
+        updated_roster = []
         for p in self.roster:
-            # Retire players at 35 (no value) or sell aging vets if we have depth
-            if p.age >= 35:
-                sold_count += 1 
-            elif p.age > 32 and len(self.roster) > 18: # Only sell vets if squad is deep
-                sale_price = p.market_value * 0.3
-                self.budget += sale_price
-                recouped += sale_price
-                sold_count += 1
+            pos_count = len([x for x in self.roster if x.position == p.position])
+            # Sell if over cap OR if Rebuild strategy hits a 'Sell High' target (Skill 86+)
+            if (len(self.roster) > CONFIG["ROSTER_CAP"] or (self.strategy == "REBUILD" and p.skill >= 86)) and pos_count > CONFIG["MIN_SQUAD"][p.position]:
+                self.budget += p.market_value * 0.85
+                recouped += p.market_value * 0.85
+                sold += 1
             else:
-                kept_roster.append(p)
-        self.roster = kept_roster
-        return sold_count, recouped
+                updated_roster.append(p)
+        self.roster = updated_roster
+        return sold, recouped
 
-    def calculate_internal_valuation(self, player, scarcity_mid):
-        if len(self.roster) >= self.roster_cap: return 0
-
-        pos_players = [p.skill for p in self.roster if p.position == player.position]
-        current_best = max(pos_players) if pos_players else 50
+    def calculate_valuation(self, player, scarcity_multiplier):
+        """Incorporate Scouting Uncertainty & Desperation Budgeting."""
+        perceived_pot = (player.potential * self.scouting_accuracy) + (player.skill * (1 - self.scouting_accuracy))
         
-        # Moneyball logic: REBUILD strategy values potential
+        # Rebuild teams value potential; Win-Now teams value current skill
         if self.strategy == "REBUILD":
-            valuation_score = (player.potential * 0.7) + (player.skill * 0.3)
+            base_score = (perceived_pot * 0.8) + (player.skill * 0.2)
         else:
-            valuation_score = player.skill
-
-        improvement = max(0.5, valuation_score - (current_best - 3))
-        satisfaction = max(0.1, (100 - current_best) / 50)
+            base_score = (player.skill * 0.9) + (perceived_pot * 0.1)
+            
+        # Desperation factor for bottom-ranked teams
+        desperation = 1.4 if self.last_season_rank == 4 else 1.0
         
-        # Desperation: Last place gets a bid boost (55% vs 35%)
-        max_bid_pct = 0.55 if self.last_season_rank >= 4 else 0.35
-        
-        valuation = improvement * 12_000_000 * scarcity_mid * satisfaction
+        valuation = (base_score ** 2.9) * 35 * desperation * scarcity_multiplier
+        # Limit bid to a percentage of remaining budget
+        max_bid_pct = 0.6 if self.last_season_rank == 4 else 0.4
         return min(valuation, self.budget * max_bid_pct)
 
 class League:
     def __init__(self, teams):
         self.teams = teams
 
+    def apply_financial_parity(self):
+        """Luxury Tax logic to redistribute wealth."""
+        tax_pool = 0
+        for t in self.teams:
+            if t.budget > CONFIG["LUXURY_TAX_THRESHOLD"]:
+                tax = (t.budget - CONFIG["LUXURY_TAX_THRESHOLD"]) * CONFIG["TAX_RATE"]
+                t.budget -= tax
+                tax_pool += tax
+        # Redistribute 50% of the tax to the bottom two teams
+        share = tax_pool / 2
+        bottom_two = sorted(self.teams, key=lambda x: x.last_season_rank, reverse=True)[:2]
+        for t in bottom_two:
+            t.budget += share / 2
+
     def run_season(self):
-        standings = []
-        for team in self.teams:
-            team.roster.sort(key=lambda x: x.skill, reverse=True)
-            # Performance is based on the top 11 players
-            avg_skill = sum(p.skill for p in team.roster[:11]) / 11
-            
-            # FIX: Tightened variance (±3.5) so skill matters more than pure luck
-            performance = avg_skill + random.uniform(-3.5, 3.5)
-            standings.append((team, performance))
-        
-        standings.sort(key=lambda x: x[1], reverse=True)
-        
-        for i, (team, perf) in enumerate(standings):
-            team.last_season_rank = i + 1
-            
-        return standings
+        results = []
+        for t in self.teams:
+            t.roster.sort(key=lambda x: x.skill, reverse=True)
+            top_11_avg = sum([p.skill for p in t.roster[:11]]) / 11
+            perf = top_11_avg + random.uniform(-CONFIG["PERFORMANCE_VARIANCE"], CONFIG["PERFORMANCE_VARIANCE"])
+            results.append((t, perf))
+        results.sort(key=lambda x: x[1], reverse=True)
+        for i, (t, _) in enumerate(results):
+            t.last_season_rank = i + 1
+        return results
 
-    def distribute_rewards(self, standings):
-        prize_pool = [120_000_000, 80_000_000, 40_000_000, 10_000_000]
-        for i, (team, performance) in enumerate(standings):
-            reward = prize_pool[i] if i < 4 else 5_000_000
-            team.budget += reward
-            print(f"{team.name} Rank #{i+1} | Skill: {performance:.1f} | Budget: ${team.budget/1_000_000:,.0f}M")
-
-def run_auction(player, teams, market, season_num):
-    scarcity_mid = market.get_scarcity_multiplier(player.position)
+def run_auction(player, teams, season_num, scarcity_multiplier):
     bids = []
-    for team in teams:
-        val = team.calculate_internal_valuation(player, scarcity_mid)
+    for t in teams:
+        val = t.calculate_valuation(player, scarcity_multiplier)
         if val >= player.market_value:
-            bids.append((val, team))
-
-    if not bids: return None
+            bids.append((val, t))
     
+    if not bids: return None
     bids.sort(key=lambda x: x[0], reverse=True)
     winner_val, winner_team = bids[0]
-    
-    runner_up_val = bids[1][0] if len(bids) > 1 else player.market_value
-    final_price = max(player.market_value, runner_up_val)
+    # Price is the second-highest bid or the market value
+    second_price = bids[1][0] if len(bids) > 1 else player.market_value
+    final_price = max(player.market_value, second_price)
 
-    if final_price <= winner_team.budget:
+    if winner_team.budget >= final_price:
         winner_team.budget -= final_price
         winner_team.roster.append(player)
-        return {
-            "season": season_num, "player_name": player.name, "skill": player.skill, 
-            "potential": player.potential, "buyer": winner_team.name, "price": round(final_price, 2)
-        }
+        return {"season": season_num, "player": player.name, "skill": player.skill, "buyer": winner_team.name, "price": final_price}
     return None
-
-def generate_random_players(count, season):
-    players = []
-    names = ["Silva", "Müller", "Jones", "Mbappe", "Kane", "Rossi", "Zhang", "Hernandez", "Bellingham", "Musiala"]
-    for i in range(count):
-        players.append(Player(f"{random.choice(names)}_{season}_{i}", 
-                              max(60, min(99, int(random.gauss(74, 7)))), 
-                              random.randint(18, 31), 
-                              random.choice(["ST", "MID", "DEF", "GK"])))
-    return players
 
 if __name__ == "__main__":
     clubs = [
-        Team("Global Giants", 500_000_000, "WIN_NOW", 80),
-        Team("London Blue", 350_000_000, "WIN_NOW", 76),
-        Team("Ajax Academy", 200_000_000, "REBUILD", 72),
-        Team("Moneyball FC", 120_000_000, "REBUILD", 68)
+        Team("Global Giants", 550_000_000, "WIN_NOW", 82),
+        Team("London Blue", 400_000_000, "WIN_NOW", 78),
+        Team("Ajax Academy", 250_000_000, "REBUILD", 74),
+        Team("Moneyball FC", 150_000_000, "REBUILD", 70)
     ]
     
-    summary_data = []
     league = League(clubs)
-
+    summary_logs, transfer_logs = [], []
+    
     for season in range(1, 6):
         print(f"\n--- SEASON {season} ---")
+        league.apply_financial_parity()
+        
         for team in clubs:
-            sold, cash = team.sell_players()
+            team.budget += CONFIG["TV_REVENUE_BASE"]
+            team.sell_players()
             team.develop_players()
+            # Unique wages for each team
+            wages = team.pay_wages()
 
-        market_players = generate_random_players(100, season)
-        market = Market(market_players)
-        market_players.sort(key=lambda x: x.skill, reverse=True)
+        # Scarcity Logic integrated
+        players = [Player(f"Gen_{season}_{i}", int(random.gauss(73, 8)), random.randint(18, 30), random.choice(["ST", "MID", "DEF", "GK"])) for i in range(100)]
+        players.sort(key=lambda x: x.skill, reverse=True)
+        
+        for p in players:
+            # Simple scarcity: if fewer of that position, price goes up
+            pos_count = len([x for x in players if x.position == p.position])
+            scarcity_mult = 1.3 if pos_count < 20 else 1.0
+            tx = run_auction(p, clubs, season, scarcity_mult)
+            if tx: transfer_logs.append(tx)
 
-        for p in market_players:
-            run_auction(p, clubs, market, season)
-
-        results = league.run_season()
-        for rank, (team, perf) in enumerate(results, 1):
-            summary_data.append({
-                "Season": season, "Team": team.name, "Rank": rank,
-                "Avg_Skill": round(perf, 1), "Budget": round(team.budget, 0)
+        standings = league.run_season()
+        prizes = [150_000_000, 100_000_000, 50_000_000, 20_000_000]
+        for i, (team, perf) in enumerate(standings):
+            team.budget += prizes[i]
+            summary_logs.append({
+                "Season": season, "Team": team.name, "Rank": i+1, 
+                "Skill": round(perf, 1), "Budget": round(team.budget, 0), "Wages": round(wages, 0)
             })
-        league.distribute_rewards(results)
+            print(f"Rank {i+1}: {team.name} (Avg Skill: {perf:.1f})")
 
-    print("\nSimulation complete. Review 'season_summary.csv' for the final trajectory.")
+    # Export CSVs
+    with open('season_summary.csv', 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=summary_logs[0].keys())
+        writer.writeheader()
+        writer.writerows(summary_logs)
+    
+    with open('transfer_data.csv', 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=transfer_logs[0].keys())
+        writer.writeheader()
+        writer.writerows(transfer_logs)
